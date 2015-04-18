@@ -3,18 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>{{title}} - WikiWHEEEEdia</title>
+  <link rel="stylesheet" type="text/css" href="/views/style.css"> 
 </head>
 <body>
+<div class="wrapper">
+<h1>WikiWHEEdia</h1>
+  <ul>
+    <li><form action="/search" method="GET"><input type="text" name="q" /><button type="submit">Search</button> </form></li>
+    <li><a href="/articles/new">View Categories</a></li>
+    <li><a href="/articles/new">Create new Article</a></li>
+  </ul>
+  <hr width="80%">
   <h1>{{title}}</h1>
-  <h2>By {{author}}</h2>
-  <h3>Last updated at {{timestamp}}</h2>
-  {{content}}
+  <h2>By <a href="/authors/{{author_id}}">{{author}}</a></h2>
+  <h3>Last updated at {{timestamp}}</h3>
+    <a href="/articles/{{article_id}}/edit">Edit</a>
+  {{{content}}}
   <h3>Cattergorys</h3>
   <p>
   {{#categories}}
   <a href="/categories/{{category_id}}">{{category}}</a>, 
   {{/categories}}
   </p>
-  <a href="/articles/{{article_id}}/edit">DERP</a>
+      <a href="/">Go home</a>
+</div>
 </body>
 </html>

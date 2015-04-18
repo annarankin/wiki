@@ -17,13 +17,14 @@
       <li><a href="/articles/new">Create new Article</a></li>
     </ul>
     <hr width="80%">
-    <h2>Most recent articles:</h2>
   </div>
   <div class="article_list">
+  <h1>{{author}}</h1>
+  <h2>Author of {{articleCount}} articles:</h2>
     {{#articles}}
     <h1>{{title}}</h1>
-    <h2>By <a href="/authors/{{author_id}}">{{author}}</a> at {{timestamp}}</h2>
-    <p>{{{excerpt}}}</p>
+    <h2>Last edited: {{timestamp}}</h2>
+    <p>{{{content}}}</p>
     <p><a href="/articles/{{article_id}}">View full</a></p>
     {{/articles}}
   </div>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Category List</title>
+  <link rel="stylesheet" type="text/css" href="/views/style.css"> 
+</head>
+<body>
+    <h1>WikiWHEEdia</h1>
+  <p><a href="/articles/new">Create new Article</a></p>
+  <h2>Category List:</h2>
+  <div>
+    {{#categories}}
+    <p><a href="/categories/{{category_id}}">{{category}}</a></p>
+    {{/categories}}
+  </div>
+  <a href="/">Go home</a>
+</body>
+</html>

@@ -8,14 +8,27 @@ var fs = require('fs')
 var methodOverride = require('method-override')
 var bodyParser = require('body-parser')
 var moment = require('moment')
-var marked = require('marked')
 var he = require('he')
 
+//var sendgrid = require('sendgrid')(api_user, api_key);
+// sendgrid.send({
+//   to: 'example@example.com',
+//   from: 'other@example.com',
+//   subject: 'Hello World',
+//   text: 'My first email through SendGrid.'
+// }, function(err, json) {
+//   if (err) {
+//     return console.error(err);
+//   }
+//   console.log(json);
+// });
+
+var marked = require('marked')
 marked.setOptions({
   renderer: new marked.Renderer(),
   gfm: true,
   tables: true,
-  breaks: false,
+  breaks: true,
   pedantic: false,
   sanitize: true,
   smartLists: true,
@@ -33,12 +46,19 @@ app.use(bodyParser.urlencoded({
   extended: false
 }))
 app.use(methodOverride('_method'))
+app.use(express.static(__dirname, 'views'))
 
 // get "/" - read db, render a template with results of "articles" table, send index page as HTML
 app.get('/', function(req, res) {
   fs.readFile('./views/index.html', 'utf8', function(err, indexTemplate) {
     //query db for author and article content for 5 most recent entries
     db.all("SELECT *, SUBSTR(content, 1, 200) AS excerpt, articles.id AS article_id FROM articles JOIN authors ON authors.id=articles.author_id ORDER BY timestamp DESC LIMIT 5;", {}, function(err, recentEntries) {
+
+      recentEntries.forEach(function(e) {
+        e.title = he.decode(e.title)
+        e.excerpt = marked(he.decode(e.excerpt + "..."));
+      });
+
       var html = Mustache.render(indexTemplate, {
         articles: recentEntries
       })
@@ -88,11 +108,10 @@ app.get('/articles/:id', function(req, res) {
       });
       articleData[0].categories = categoryArray;
       console.log(articleData)
-      articleData[0].content = marked(articleData[0].content)
+      articleData[0].content = marked(he.decode(articleData[0].content))
+      articleData[0].title = he.decode(articleData[0].title)
       console.log(articleData[0].content)
       var html = Mustache.render(articleTemplate, articleData[0])
-
-
       res.send(html);
     }); //end db.all function
   }); //end readfile function
@@ -104,8 +123,8 @@ app.post('/articles', function(req, res) {
   //set up all the variables, clean up
   var timestamp = moment().format('YYYY-MM-DD HH:mm:ss a');;
   var authorId = req.body.author;
-  var newTitle = req.body.title;
-  var newContent = req.body.content;
+  var newTitle = he.encode(req.body.title);
+  var newContent = he.encode(req.body.content);
   var newCategories = req.body.categories.split(",");
   var newCatTrimmed = []
   newCategories.forEach(function(e) {
@@ -116,7 +135,11 @@ app.post('/articles', function(req, res) {
   //insert categories into catgories table
 
   newCatTrimmed.forEach(function(e) {
-    db.run("INSERT INTO categories (category) SELECT '" + e + "' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE category='" + e + "');")
+    if (e.replace(/ /g, "") !== "") {
+      db.run("INSERT INTO categories (category) SELECT '" + e + "' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE category='" + e + "');")
+    } else {
+      console.log("Empty category thing")
+    }
   }); //end foreach
 
   //insert article info into article table
@@ -184,11 +207,6 @@ app.put('/articles/:id', function(req, res) {
           }) //end serialization callbach
       }); //end category ID get db.all function
     }); //end foreach
-    // newCatTrimmed.forEach(function(e) {
-    // }); //end forEach funkin
-
-    //insert categories into catgories table
-
   } //close conditional that checks for new categories
 
   //add article DB info
@@ -197,9 +215,29 @@ app.put('/articles/:id', function(req, res) {
 });
 
 //delete article
-//app.delete()
+app.delete('/articles/:id', function(req, res) {
+  var articleID = req.params.id;
+  db.run("DELETE FROM articles WHERE id='" + articleID + "';");
+  res.redirect('/');
+
+}); //end delete callback
 
 //see all by author
+app.get('/authors/:id', function(req, res) {
+  var authorId = req.params.id;
+  fs.readFile('./views/authorpage.html', 'utf8', function(err, authorTemplate) {
+    db.all("SELECT * FROM articles JOIN authors ON articles.author_id=authors.id WHERE author_id='" + authorId + "';", {}, function(err, articles) {
+      var toRender = {
+        author : articles[0].author,
+        articleCount : articles.length,
+        articles: articles
+      }
+      var html = Mustache.render(authorTemplate, toRender)
+      res.send(html)
+    });
+  });
+
+}); //end authors get callback
 
 //see all in particular category
 

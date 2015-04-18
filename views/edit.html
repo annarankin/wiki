@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Edit Article - WHEE</title>
+  <link rel="stylesheet" type="text/css" href="/views/style.css"> 
 </head>
 <body>
 <!--   <form action="/articles/{{id}}/edit" method="POST">
@@ -35,5 +36,10 @@
     </label>
     <button type="submit">Submit</button>
   </form>
+  <form action="/articles/{{article_id}}/?_method=DELETE" method="POST">
+  <button type="submit">DELETE!</button>
+  </form>
+    <a href="/">Go home</a>
+
 </body>
 </html>
