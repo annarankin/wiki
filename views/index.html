@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WikiWHEEdia</title>
+</head>
+<body>
+  <h1>WikiWHEEdia</h1>
+  <p><a href="/articles/new">Create new Article</a></p>
+  <h2>Most recent articles:</h2>
+  <div>
+    {{#articles}}
+    <h1>{{title}}</h1>
+    <h2>By {{author}} at {{timestamp}}</h2>
+    <p>{{excerpt}}...</p>
+    <p><a href="/articles/{{article_id}}">View full</a></p>
+    {{/articles}}
+  </div>
+</body>
+</html>

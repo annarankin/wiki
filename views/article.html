@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}} - WikiWHEEEEdia</title>
+</head>
+<body>
+  <h1>{{title}}</h1>
+  <h2>By {{author}}</h2>
+  <h3>Last updated at {{timestamp}}</h2>
+  {{content}}
+  <h3>Cattergorys</h3>
+  <p>
+  {{#categories}}
+  <a href="/categories/{{category_id}}">{{category}}</a>, 
+  {{/categories}}
+  </p>
+  <a href="/articles/{{article_id}}/edit">DERP</a>
+</body>
+</html>

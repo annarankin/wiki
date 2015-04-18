@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add New Article - WHEE</title>
+</head>
+<body>
+  <form action="/articles/new" method="POST">
+    <label>Add New Author:
+      <input type="text" name="new_author" placeholder="Username" />
+    </label>
+    <label>
+      <input type="text" name="new_email" placeholder="Email" />
+    </label>
+      <button type="submit">Submit</button>
+  </form>
+
+  <form action="/articles" method="POST">
+    <label><h2>Select Author:</h2>
+      <select name="author">
+      {{#authors}}
+        <option value="{{id}}">{{author}}</option>
+      {{/authors}}
+      </select>
+    </label>
+    <label><h2>Title</h2>
+    <input type="text" name="title" placeholder="Article Title" />
+    </label>
+    <label><h2>Body:</h2>
+      <textarea name="content" placeholder="The content of your article goes here! Markdown formatting supported."></textarea>
+    </label>
+    <label><h2>Categories</h2>
+    <input type="text" name="categories" placeholder="Enter categories separated by commas." />
+    </label>
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>
