@@ -126,6 +126,7 @@ app.post('/articles', function(req, res) {
   var newTitle = he.encode(req.body.title);
   var newContent = he.encode(req.body.content);
   var newCategories = req.body.categories.split(",");
+  console.log(newCategories)
   var newCatTrimmed = []
   newCategories.forEach(function(e) {
     var trimmed = e.trim();
@@ -218,6 +219,7 @@ app.put('/articles/:id', function(req, res) {
 app.delete('/articles/:id', function(req, res) {
   var articleID = req.params.id;
   db.run("DELETE FROM articles WHERE id='" + articleID + "';");
+  db.run("DELETE FROM tags WHERE article_id='" + articleID + "';");
   res.redirect('/');
 
 }); //end delete callback
@@ -226,10 +228,16 @@ app.delete('/articles/:id', function(req, res) {
 app.get('/authors/:id', function(req, res) {
   var authorId = req.params.id;
   fs.readFile('./views/authorpage.html', 'utf8', function(err, authorTemplate) {
-    db.all("SELECT * FROM articles JOIN authors ON articles.author_id=authors.id WHERE author_id='" + authorId + "';", {}, function(err, articles) {
+    db.all("SELECT *, SUBSTR(content, 1, 200) AS excerpt, articles.id AS article_id FROM articles JOIN authors ON articles.author_id=authors.id WHERE author_id='" + authorId + "';", {}, function(err, articles) {
+
+      articles.forEach(function(e) {
+        e.excerpt = marked(he.decode(e.excerpt + "..."))
+      });
+
       var toRender = {
-        author : articles[0].author,
-        articleCount : articles.length,
+        author: articles[0].author,
+        email: articles[0].email,
+        articleCount: articles.length,
         articles: articles
       }
       var html = Mustache.render(authorTemplate, toRender)
@@ -239,9 +247,39 @@ app.get('/authors/:id', function(req, res) {
 
 }); //end authors get callback
 
-//see all in particular category
+//see categories
+app.get('/categories', function(req, res) {
+  fs.readFile('./views/categories.html', 'utf8', function(err, categoryListTemplate) {
+    db.all("SELECT * FROM categories;", {}, function(err, categories) {
+      var html = Mustache.render(categoryListTemplate, {
+        categories: categories
+      });
+      res.send(html);
+    });
+  });
+});
 
-//add search function
+//see all in particular category
+app.get('/categories/:id', function(req, res) {
+  var categoryId = req.params.id;
+  fs.readFile('./views/categories_by_id.html', 'utf8', function(err, categoryListTemplate) {
+    db.all("SELECT category, articles.id AS article_id, author_id, title, timestamp, SUBSTR(content,1,200) AS excerpt, categories.id AS category_id FROM categories INNER JOIN tags ON tags.category_id= categories.id INNER JOIN articles ON tags.article_id= articles.id WHERE categories.id=" + categoryId + ";", {}, function(err, articles) {
+      if(articles[0] !== undefined){
+
+      articles[0].articles = articles.map(function(e){
+        return {article_id : e.article_id, title: e.title}
+      });
+      console.log(articles[0])
+      var html = Mustache.render(categoryListTemplate, articles[0]);
+      res.send(html);
+    } else {
+      res.send("SELECT category, articles.id AS article_id, author_id, title, timestamp, SUBSTR(content,1,200) AS excerpt, categories.id AS category_id FROM categories INNER JOIN tags ON tags.category_id= categories.id INNER JOIN articles ON tags.article_id= articles.id WHERE categories.id=" + categoryId + ";" + "<br><br>"+ articles + "<br><br>" + err)
+    }
+    });
+  });
+});
+
+//search function
 
 
 

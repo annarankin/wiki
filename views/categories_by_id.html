@@ -2,15 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>WikiWHEE</title>
+  <title>Articles about {{category}}</title>
   <link rel="stylesheet" type="text/css" href="/views/style.css"> 
-  <link href='http://fonts.googleapis.com/css?family=Sigmar+One' rel='stylesheet' type='text/css'>
-  <link href='http://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
-
 </head>
 <body>
-<div class="wrapper">
-  <div class="header">
+   <div class="header">
     <h1>WikiWHEE</h1>
     <ul>
       <li><form action="/search" method="GET"><input type="text" name="q" /><button type="submit">Search</button> </form></li>
@@ -20,14 +16,12 @@
     <hr width="80%">
     <h2>Most recent articles:</h2>
   </div>
+  <h2>Articles that involve {{category}} somehow:</h2>
   <div class="article_list">
     {{#articles}}
-    <h1>{{title}}</h1>
-    <h2>By <a href="/authors/{{author_id}}">{{author}}</a> at {{timestamp}}</h2>
-    <span class="article_content"><p>{{{excerpt}}}</p></span>
-    <p><a href="/articles/{{article_id}}">View full</a></p>
+    <p><a href="/articles/{{article_id}}">{{title}}</a></p>
     {{/articles}}
   </div>
-  </div>
+  <a href="/">Go home</a>
 </body>
 </html>

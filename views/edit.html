@@ -4,42 +4,39 @@
   <meta charset="UTF-8">
   <title>Edit Article - WHEE</title>
   <link rel="stylesheet" type="text/css" href="/views/style.css"> 
+  <link href='http://fonts.googleapis.com/css?family=Sigmar+One' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
 </head>
 <body>
-<!--   <form action="/articles/{{id}}/edit" method="POST">
-    <label>Add New Username:
-      <input type="text" name="new_author" placeholder="Username" />
-    </label>
-    <label>
-      <input type="text" name="new_email" placeholder="Email" />
-    </label>
-      <button type="submit">Submit</button>
-  </form> -->
-
-  <form action="/articles/{{article_id}}/?_method=PUT" method="POST">
-<!--     <label><h2>Select your username:</h2>
-      <select name="author">
-      {{#authors}}
-        <option value="{{id}}">{{author}}</option>
-      {{/authors}}
-      </select>
-    </label> -->
-    <label><h2>Title</h2>
-    <input type="text" name="title" placeholder="Article Title" value="{{title}}" />
-    </label>
-    <label><h2>Body:</h2>
-      <textarea name="content" placeholder="The content of your article goes here! Markdown formatting supported.">{{content}}</textarea>
-    </label>
-    <label><h2>Categories</h2>
-    <p>Current Categories: {{catString}}</p>
-    <input type="text" name="categories" placeholder="Enter categories separated by commas." />
-    </label>
-    <button type="submit">Submit</button>
-  </form>
-  <form action="/articles/{{article_id}}/?_method=DELETE" method="POST">
-  <button type="submit">DELETE!</button>
-  </form>
-    <a href="/">Go home</a>
-
+<div class="wrapper">
+  <div class="header">
+    <h1>WikiWHEE</h1>
+    <ul>
+      <li><form action="/search" method="GET"><input type="text" name="q" /><button type="submit">Search</button> </form></li>
+      <li><a href="/categories">View Categories</a></li>
+      <li><a href="/articles/new">Create new Article</a></li>
+    </ul>
+    <hr width="80%">
+  </div>
+  <div class="article_list">
+    <form action="/articles/{{article_id}}/?_method=PUT" method="POST">
+      <label><h2>Title</h2>
+        <input type="text" name="title" placeholder="Article Title" value="{{title}}" />
+      </label>
+      <label><h2>Body:</h2>
+        <textarea name="content" placeholder="The content of your article goes here! Markdown formatting supported.">{{content}}</textarea>
+      </label>
+      <label><h2>Categories</h2>
+        <p>Current Categories: {{catString}}</p>
+        <input type="text" name="categories" placeholder="Enter categories separated by commas." />
+      </label>
+        <button type="submit">Submit</button>
+    </form>
+    <form action="/articles/{{article_id}}/?_method=DELETE" method="POST">
+    <button type="submit">DELETE!</button>
+    </form>
+      <a href="/">Go home</a>
+  </div>
+</div>    
 </body>
 </html>
