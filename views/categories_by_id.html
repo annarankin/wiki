@@ -1,27 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Articles about {{category}}</title>
-  <link rel="stylesheet" type="text/css" href="/views/style.css"> 
-</head>
-<body>
-   <div class="header">
-    <h1>WikiWHEE</h1>
-    <ul>
-      <li><form action="/search" method="GET"><input type="text" name="q" /><button type="submit">Search</button> </form></li>
-      <li><a href="/categories">View Categories</a></li>
-      <li><a href="/articles/new">Create new Article</a></li>
-    </ul>
-    <hr width="80%">
-    <h2>Most recent articles:</h2>
-  </div>
-  <h2>Articles that involve {{category}} somehow:</h2>
+  <h2>Articles that involve "{{category}}" somehow:</h2>
   <div class="article_list">
     {{#articles}}
     <p><a href="/articles/{{article_id}}">{{title}}</a></p>
     {{/articles}}
   </div>
-  <a href="/">Go home</a>
-</body>
-</html>

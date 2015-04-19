@@ -1,33 +1,57 @@
+ul {  
+  margin: 3px;
+  padding: 3px;
+
+}
 li {
   display: inline-block;
+  margin: 3px;
+  padding: 3px;
 }
 body {
   font-family: Helvetica, Arial, sans-serif;
-  background: #ededed;
+  background: #FFCEA5;
 }
 h1 {
   font-family: 'Indie Flower', sans-serif;  
   font-size: 45px;
-  color: #ed4433;
+  color: #0066CC;
   line-height: 45px;
-  border-bottom: 1px solid #ed4433;
+  border-bottom: 1px solid #0066CC;
 }
 .header {
     text-align: center;
+    background: #8FDE8F;
+    padding: 15px;
+    margin:0px;
 }
 .header h1 {
   font-family: 'Sigmar One', cursive;  
   font-size: 60px;
   line-height: 60px;
-  color: #ed4433;
+  color: #095A5A;
   border: 0;
-
+  margin: 45px auto 7px auto;
+}
+.header a {
+  color: #0066CC;
+  text-decoration: none;
 }
 .wrapper {
-  max-width: 600px;
+  max-width: 750px;
   margin: 0 auto;
   background: #FFFFFF;
-  padding: 15px;
+  padding: 0px;
+}
+.content_wrapper {
+  background: #FFFFFF;
+  padding: 3px;
+  margin: 25px;
+}
+.content_wrapper input {
+  padding: 10px;
+  width: 90%;
+  font-size: 20px;
 }
 .article-list {
   font-size: 14px;
@@ -35,13 +59,12 @@ h1 {
 }
 .article_list h1 {
   font-size: 35px;
-  color: #999999;
+  color: #095A5A;
   line-height: 35px;
   margin: 7px 0;
-  border-bottom: 1px solid #999999;
-
+  border-bottom: 1px solid #BC2727;
 }
-.article_list h2{
+.article_list h2 {
   font-size: 15px;
   color: #999999;
   line-height: 25px;
@@ -54,11 +77,19 @@ h1 {
   font-size: 20px;
   font-weight: bold;
 }
+.article_list img {
+  max-width: 400px;
+  display: block;
+  margin: 0 auto;
+}
 .article_content h1 {
   font-family: Helvetica, Arial, sans-serif;
   font-size: 18px;
   color: #000000;
   border: 0;
+}
+.article_content img {
+  display: none;
 }
 .article_content h2,
 .article_content h3,
@@ -67,4 +98,40 @@ h1 {
 .article_content h6 {
   font-size: 16px;
   font-weight: bold;
+}
+.new_author {
+  color: #FFFFFF;
+  background: #0066CC;
+  padding: 7px;
+  text-align: center;
+}
+.new_author input {
+  padding: 7px;
+  border: 0;
+  width: 30%;
+  font-size: 18px;
+}
+.new_author p {
+  margin: 7px;
+}
+.new_author button {
+  border: 0;
+  background: #FFFFFF;
+  padding: 7px;
+  font-weight: bold;
+}
+.footer {
+  text-align: center;
+}
+.erroar {
+  color: red;
+  display: block;
+  margin: 10px auto;
+}
+.announcement {
+  font-family: Helvetica, Arial, sans-serif;  
+  font-size: 25px;
+  color: #0066CC;
+  line-height: 45px;
+  border-bottom: 0;
 }

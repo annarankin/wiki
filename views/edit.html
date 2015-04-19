@@ -1,24 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Edit Article - WHEE</title>
-  <link rel="stylesheet" type="text/css" href="/views/style.css"> 
-  <link href='http://fonts.googleapis.com/css?family=Sigmar+One' rel='stylesheet' type='text/css'>
-  <link href='http://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
-</head>
-<body>
-<div class="wrapper">
-  <div class="header">
-    <h1>WikiWHEE</h1>
-    <ul>
-      <li><form action="/search" method="GET"><input type="text" name="q" /><button type="submit">Search</button> </form></li>
-      <li><a href="/categories">View Categories</a></li>
-      <li><a href="/articles/new">Create new Article</a></li>
-    </ul>
-    <hr width="80%">
-  </div>
   <div class="article_list">
+  <p>You can write your entries using <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown!</a></p>
     <form action="/articles/{{article_id}}/?_method=PUT" method="POST">
       <label><h2>Title</h2>
         <input type="text" name="title" placeholder="Article Title" value="{{title}}" />
@@ -37,6 +18,3 @@
     </form>
       <a href="/">Go home</a>
   </div>
-</div>    
-</body>
-</html>

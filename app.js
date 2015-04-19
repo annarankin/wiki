@@ -48,6 +48,10 @@ app.use(bodyParser.urlencoded({
 app.use(methodOverride('_method'))
 app.use(express.static(__dirname, 'views'))
 
+var htmlHeader = fs.readFileSync('./views/header.html', 'utf8');
+var htmlFooter = fs.readFileSync('./views/footer.html', 'utf8');
+
+
 // get "/" - read db, render a template with results of "articles" table, send index page as HTML
 app.get('/', function(req, res) {
   fs.readFile('./views/index.html', 'utf8', function(err, indexTemplate) {
@@ -56,26 +60,40 @@ app.get('/', function(req, res) {
 
       recentEntries.forEach(function(e) {
         e.title = he.decode(e.title)
-        e.excerpt = marked(he.decode(e.excerpt + "..."));
+        if (marked(he.decode(e.excerpt)).indexOf('<img src=') > 0) {
+          e.excerpt = "<p><strong>Image post!</strong></p>" + marked(he.decode(e.excerpt + "..."));
+        } else {
+          e.excerpt = marked(he.decode(e.excerpt + "..."));
+        }
       });
-
-      var html = Mustache.render(indexTemplate, {
+      var html = htmlHeader + Mustache.render(indexTemplate, {
         articles: recentEntries
-      })
-      console.log(recentEntries)
+      }) + htmlFooter;
       res.send(html);
-
     }); //end db.all function
   }); //end readFile function
 }); //end app.get function
 
+//view articles
+app.get('/articles', function(req, res) {
+  res.redirect('/')
+});
+
 //add new article FORM
 app.get('/articles/new', function(req, res) {
+  var erroar = req.query.erroar
+  console.log(erroar)
   db.all("SELECT * FROM authors;", {}, function(err, authorArray) {
     fs.readFile('./views/new.html', 'utf8', function(err, newTemplate) {
-      var html = Mustache.render(newTemplate, {
-        authors: authorArray
-      })
+      if (erroar === "YUP") {
+        var html = htmlHeader + Mustache.render(newTemplate, {
+          authors: authorArray
+        }) + '<span class="erroar">**Please enter a title AND content!**</span>' + htmlFooter;
+      } else {
+        var html = htmlHeader + Mustache.render(newTemplate, {
+          authors: authorArray
+        }) + htmlFooter;
+      }
       res.send(html)
     }); //end readfile function
   }); //end db.all function
@@ -98,67 +116,81 @@ app.get('/articles/:id', function(req, res) {
   var articleID = req.params.id;
   fs.readFile('./views/article.html', 'utf8', function(err, articleTemplate) {
     db.all("SELECT title, author, timestamp, content, category, articles.id AS article_id, categories.id AS category_id FROM articles JOIN tags ON articles.id = article_id JOIN categories ON categories.id = category_id JOIN authors ON authors.id = author_id WHERE articles.id = " + articleID + ";", {}, function(err, articleData) {
-      var categoryArray = []
-      articleData.forEach(function(e) {
-        var categoryObj = {
-          "category": e.category,
-          "category_id": e.category_id
-        };
-        categoryArray.push(categoryObj);
-      });
-      articleData[0].categories = categoryArray;
-      console.log(articleData)
-      articleData[0].content = marked(he.decode(articleData[0].content))
-      articleData[0].title = he.decode(articleData[0].title)
-      console.log(articleData[0].content)
-      var html = Mustache.render(articleTemplate, articleData[0])
-      res.send(html);
+      if (articleData[0] !== undefined) {
+        var categoryArray = []
+        articleData.forEach(function(e) {
+          var categoryObj = {
+            "category": e.category,
+            "category_id": e.category_id
+          };
+          categoryArray.push(categoryObj);
+        });
+        articleData[0].categories = categoryArray;
+        articleData[0].content = marked(he.decode(articleData[0].content))
+        articleData[0].title = he.decode(articleData[0].title)
+        console.log(articleData[0].content)
+        var html = htmlHeader + Mustache.render(articleTemplate, articleData[0]) + htmlFooter;
+        res.send(html);
+      } else {
+        db.all("SELECT title, author, timestamp, content, articles.id AS article_id FROM articles JOIN authors ON authors.id = author_id WHERE articles.id = " + articleID + ";", {}, function(err, article) {
+          console.log(article)
+          article[0].categories = {
+            category: "No categories yet!"
+          }
+          var html = htmlHeader + Mustache.render(articleTemplate, article[0]) + htmlFooter;
+          res.send(html);
+        });
+      }
     }); //end db.all function
   }); //end readfile function
 }); //end app.get function
 
-
 //add new article to db - submitting to db & adding relations
 app.post('/articles', function(req, res) {
   //set up all the variables, clean up
+
   var timestamp = moment().format('YYYY-MM-DD HH:mm:ss a');;
   var authorId = req.body.author;
   var newTitle = he.encode(req.body.title);
   var newContent = he.encode(req.body.content);
   var newCategories = req.body.categories.split(",");
-  console.log(newCategories)
   var newCatTrimmed = []
   newCategories.forEach(function(e) {
     var trimmed = e.trim();
     newCatTrimmed.push(trimmed);
   }); //end forEach funkin
 
-  //insert categories into catgories table
+  if (newTitle.length > 1 && newContent.length > 1) {
+    //insert article info into article table
+    db.run("INSERT INTO articles (author_id, title, timestamp, content) SELECT " + authorId + ",'" + newTitle + "','" + timestamp + "','" + newContent + "' WHERE NOT EXISTS (SELECT 1 FROM articles WHERE author_id =" + authorId + " AND title='" + newTitle + "' AND timestamp='" + timestamp + "' AND content='" + newContent + "');")
 
-  newCatTrimmed.forEach(function(e) {
-    if (e.replace(/ /g, "") !== "") {
-      db.run("INSERT INTO categories (category) SELECT '" + e + "' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE category='" + e + "');")
-    } else {
-      console.log("Empty category thing")
-    }
-  }); //end foreach
-
-  //insert article info into article table
-  db.run("INSERT INTO articles (author_id, title, timestamp, content) SELECT " + authorId + ",'" + newTitle + "','" + timestamp + "','" + newContent + "' WHERE NOT EXISTS (SELECT 1 FROM articles WHERE author_id =" + authorId + " AND title='" + newTitle + "' AND timestamp='" + timestamp + "' AND content='" + newContent + "');")
-
-  //get IDs for all categories & get author id, send to tags table
-  db.all("SELECT id FROM articles WHERE author_id='" + authorId + "' AND title='" + newTitle + "' AND timestamp ='" + timestamp + "' AND content='" + newContent + "';", {}, function(err, articleData) {
-    //var parsedArt = JSON.parse(articleData);
-    var articleID = articleData[0].id;
+    //insert categories into catgories table
     newCatTrimmed.forEach(function(e) {
-      db.all("SELECT id FROM categories WHERE category='" + e + "';", {}, function(err, category) {
-        var categoryId = category[0].id;
-        db.run("INSERT INTO tags (article_id, category_id) VALUES ('" + articleID + "','" + categoryId + "');")
-      }); //end category ID get db.all function
-
+      if (e.replace(/ /g, "") !== "") {
+        db.run("INSERT INTO categories (category) SELECT '" + e + "' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE category='" + e + "');")
+      } else {
+        console.log("Empty category thing")
+      }
     }); //end foreach
-    res.redirect('/articles/' + articleID)
-  }); //end db.all get article id function
+
+    //get IDs for all categories & get author id, send to tags table
+    db.all("SELECT id FROM articles WHERE author_id='" + authorId + "' AND title='" + newTitle + "' AND timestamp ='" + timestamp + "' AND content='" + newContent + "';", {}, function(err, articleData) {
+      //var parsedArt = JSON.parse(articleData);
+      var articleID = articleData[0].id;
+      newCatTrimmed.forEach(function(e) {
+        db.all("SELECT id FROM categories WHERE category='" + e + "';", {}, function(err, category) {
+          if (category[0] !== undefined) {
+            var categoryId = category[0].id;
+            db.run("INSERT INTO tags (article_id, category_id) VALUES ('" + articleID + "','" + categoryId + "');")
+          }
+        }); //end category ID get db.all function
+
+      }); //end foreach
+      res.redirect('/articles/' + articleID)
+    }); //end db.all get article id function
+  } else {
+    res.redirect('/articles/new?erroar=YUP')
+  } //end conditional that checks if user entered both title and content.
 }); //end app.post articles function
 
 
@@ -166,17 +198,25 @@ app.post('/articles', function(req, res) {
 app.get('/articles/:id/edit', function(req, res) {
   var articleID = req.params.id;
   db.all("SELECT * FROM articles INNER JOIN tags ON tags.article_id = articles.id INNER JOIN categories ON tags.category_id = categories.id WHERE articles.id ='" + articleID + "';", {}, function(err, articleData) {
-    var categoryArray = []
-    articleData.forEach(function(e) {
-      categoryArray.push(e.category);
-    });
-    articleData[0].catString = categoryArray.join(", ")
+    if (articleData[0] === undefined) {
+      db.all("SELECT *, id AS article_id FROM articles WHERE articles.id =" + articleID, {}, function(err, article) {
+        fs.readFile('./views/edit.html', 'utf8', function(err, editTemplate) {
+          var html = htmlHeader + Mustache.render(editTemplate, article[0]) + htmlFooter;
+          res.send(html)
+        });
+      });
+    } else {
+      var categoryArray = []
+      articleData.forEach(function(e) {
+        categoryArray.push(e.category);
+      });
+      articleData[0].catString = categoryArray.join(", ")
 
-    fs.readFile('./views/edit.html', 'utf8', function(err, editTemplate) {
-      var html = Mustache.render(editTemplate, articleData[0])
-      res.send(html)
-
-    }); //end readfile 
+      fs.readFile('./views/edit.html', 'utf8', function(err, editTemplate) {
+        var html = htmlHeader + Mustache.render(editTemplate, articleData[0]) + htmlFooter;
+        res.send(html)
+      }); //end readfile 
+    }
   }); //end db.all funkyshun
 }); //end app.get function
 
@@ -240,7 +280,7 @@ app.get('/authors/:id', function(req, res) {
         articleCount: articles.length,
         articles: articles
       }
-      var html = Mustache.render(authorTemplate, toRender)
+      var html = htmlHeader + Mustache.render(authorTemplate, toRender) + htmlFooter;
       res.send(html)
     });
   });
@@ -251,9 +291,9 @@ app.get('/authors/:id', function(req, res) {
 app.get('/categories', function(req, res) {
   fs.readFile('./views/categories.html', 'utf8', function(err, categoryListTemplate) {
     db.all("SELECT * FROM categories;", {}, function(err, categories) {
-      var html = Mustache.render(categoryListTemplate, {
+      var html = htmlHeader + Mustache.render(categoryListTemplate, {
         categories: categories
-      });
+      }) + htmlFooter;
       res.send(html);
     });
   });
@@ -264,23 +304,59 @@ app.get('/categories/:id', function(req, res) {
   var categoryId = req.params.id;
   fs.readFile('./views/categories_by_id.html', 'utf8', function(err, categoryListTemplate) {
     db.all("SELECT category, articles.id AS article_id, author_id, title, timestamp, SUBSTR(content,1,200) AS excerpt, categories.id AS category_id FROM categories INNER JOIN tags ON tags.category_id= categories.id INNER JOIN articles ON tags.article_id= articles.id WHERE categories.id=" + categoryId + ";", {}, function(err, articles) {
-      if(articles[0] !== undefined){
+      if (articles[0] !== undefined) {
 
-      articles[0].articles = articles.map(function(e){
-        return {article_id : e.article_id, title: e.title}
-      });
-      console.log(articles[0])
-      var html = Mustache.render(categoryListTemplate, articles[0]);
-      res.send(html);
-    } else {
-      res.send("SELECT category, articles.id AS article_id, author_id, title, timestamp, SUBSTR(content,1,200) AS excerpt, categories.id AS category_id FROM categories INNER JOIN tags ON tags.category_id= categories.id INNER JOIN articles ON tags.article_id= articles.id WHERE categories.id=" + categoryId + ";" + "<br><br>"+ articles + "<br><br>" + err)
-    }
+        articles[0].articles = articles.map(function(e) {
+          return {
+            article_id: e.article_id,
+            title: e.title
+          }
+        });
+        console.log(articles[0])
+        var html = htmlHeader + Mustache.render(categoryListTemplate, articles[0]) + htmlFooter;;
+        res.send(html);
+      } else {
+        res.send("SELECT category, articles.id AS article_id, author_id, title, timestamp, SUBSTR(content,1,200) AS excerpt, categories.id AS category_id FROM categories INNER JOIN tags ON tags.category_id= categories.id INNER JOIN articles ON tags.article_id= articles.id WHERE categories.id=" + categoryId + ";" + "<br><br>" + articles + "<br><br>" + err)
+      }
     });
   });
 });
 
 //search function
-
+app.get('/search', function(req, res) {
+  var query = req.query.q;
+  fs.readFile('./views/categories_by_id.html', 'utf8', function(err, categoryListTemplate) {
+    db.all("SELECT categories.id AS category_id, tags.article_id, category FROM categories LEFT JOIN tags ON articles.id=tags.category_id LEFT JOIN articles ON title LIKE '%" + query + "%' AND articles.id=tags.article_id WHERE title LIKE '%" + query + "%' OR category LIKE '%" + query + "%' GROUP BY articles.id ORDER BY 1;", {}, function(err, articles) {
+      if (articles[0] !== undefined) {
+        var articlesArray = [];
+        articles.forEach(function(e){
+          console.log(e)
+          var articleID = e.article_id;
+          db.all("SELECT * FROM articles WHERE id="+ articleID, {}, function(err, article){
+            articlesArray.push(article[0]);
+            console.log(article)
+          })//end db.all
+        });
+        var toRender = {
+          category: query,
+          articles: articlesArray
+        }
+        var html = htmlHeader + Mustache.render(categoryListTemplate, toRender) + htmlFooter;;
+        res.send(html);
+      } else {
+        var toRender = {
+          category: query,
+          articles: {
+            article_id: "",
+            title: "I FOUND NOTHING! Click to view all articles"
+          }
+        }
+        var html = htmlHeader + Mustache.render(categoryListTemplate, toRender) + htmlFooter;;
+        res.send(html);
+      }
+    });
+  });
+});
 
 
 //app listen on 3000
