@@ -10,18 +10,7 @@ var bodyParser = require('body-parser')
 var moment = require('moment')
 var he = require('he')
 
-//var sendgrid = require('sendgrid')(api_user, api_key);
-// sendgrid.send({
-//   to: 'example@example.com',
-//   from: 'other@example.com',
-//   subject: 'Hello World',
-//   text: 'My first email through SendGrid.'
-// }, function(err, json) {
-//   if (err) {
-//     return console.error(err);
-//   }
-//   console.log(json);
-// });
+var sendgrid = require('sendgrid')('AnnaRankin', '0i8afork!');
 
 var marked = require('marked')
 marked.setOptions({
@@ -228,6 +217,7 @@ app.put('/articles/:id', function(req, res) {
   var timestamp = moment().format('YYYY-MM-DD HH:mm:ss a');
   var newTitle = req.body.title;
   var newContent = req.body.content;
+  var newEditor = req.body.editor;
   var newCategories = req.body.categories.split(",");
   console.log("This is a length " + newCategories.length)
   if (newCategories.length > 0) {
@@ -253,6 +243,23 @@ app.put('/articles/:id', function(req, res) {
   //add article DB info
   db.run("UPDATE articles SET title ='" + newTitle + "', timestamp='" + timestamp + "', content='" + newContent + "' WHERE id='" + articleID + "';");
   res.redirect('/articles/' + articleID);
+
+  //send email to author
+
+  var emailContent = "<h1>Your article has been updated!</h1><h2>Edited by " + newEditor + " on " + timestamp + ":</h2><h3>" + newTitle + "</h3><p>" + newContent + "</p>"
+
+  sendgrid.send({
+    to: 'anna@annarankin.com',
+    from: 'anna@annarankin.com',
+    subject: 'Your article has been updated!',
+    text: emailContent
+  }, function(err, json) {
+    if (err) {
+      return console.error(err);
+    }
+    console.log(json);
+  });
+
 });
 
 //delete article
@@ -260,6 +267,7 @@ app.delete('/articles/:id', function(req, res) {
   var articleID = req.params.id;
   db.run("DELETE FROM articles WHERE id='" + articleID + "';");
   db.run("DELETE FROM tags WHERE article_id='" + articleID + "';");
+  db.run("DELETE FROM categories WHERE id NOT IN (SELECT DISTINCT category_id FROM tags);")
   res.redirect('/');
 
 }); //end delete callback
@@ -271,7 +279,12 @@ app.get('/authors/:id', function(req, res) {
     db.all("SELECT *, SUBSTR(content, 1, 200) AS excerpt, articles.id AS article_id FROM articles JOIN authors ON articles.author_id=authors.id WHERE author_id='" + authorId + "';", {}, function(err, articles) {
 
       articles.forEach(function(e) {
-        e.excerpt = marked(he.decode(e.excerpt + "..."))
+        e.title = he.decode(e.title)
+        if (marked(he.decode(e.excerpt)).indexOf('<img src=') > 0) {
+          e.excerpt = "<p><strong>Image post!</strong></p>" + marked(he.decode(e.excerpt + "..."));
+        } else {
+          e.excerpt = marked(he.decode(e.excerpt + "..."));
+        }
       });
 
       var toRender = {
@@ -326,20 +339,14 @@ app.get('/categories/:id', function(req, res) {
 app.get('/search', function(req, res) {
   var query = req.query.q;
   fs.readFile('./views/categories_by_id.html', 'utf8', function(err, categoryListTemplate) {
-    db.all("SELECT categories.id AS category_id, tags.article_id, category FROM categories LEFT JOIN tags ON articles.id=tags.category_id LEFT JOIN articles ON title LIKE '%" + query + "%' AND articles.id=tags.article_id WHERE title LIKE '%" + query + "%' OR category LIKE '%" + query + "%' GROUP BY articles.id ORDER BY 1;", {}, function(err, articles) {
+    //pull out categories that match
+    //pull out article titles that match
+    //
+    db.all("SELECT DISTINCT title, categories.id AS category_id, article_id, category FROM tags, articles, categories WHERE category LIKE '%" + query + "%' AND tags.article_id=articles.id AND categories.id=category_id OR title LIKE '%" + query + "%' AND tags.article_id=articles.id AND categories.id=category_id GROUP BY article_id;", {}, function(err, articles) {
       if (articles[0] !== undefined) {
-        var articlesArray = [];
-        articles.forEach(function(e){
-          console.log(e)
-          var articleID = e.article_id;
-          db.all("SELECT * FROM articles WHERE id="+ articleID, {}, function(err, article){
-            articlesArray.push(article[0]);
-            console.log(article)
-          })//end db.all
-        });
         var toRender = {
           category: query,
-          articles: articlesArray
+          articles: articles
         }
         var html = htmlHeader + Mustache.render(categoryListTemplate, toRender) + htmlFooter;;
         res.send(html);

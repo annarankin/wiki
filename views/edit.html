@@ -1,10 +1,13 @@
   <div class="article_list">
-  <p>You can write your entries using <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown!</a></p>
     <form action="/articles/{{article_id}}/?_method=PUT" method="POST">
+      <label><h2>Your name:</h2>
+        <input type="text" name="editor" placeholder="Your Name" />
+      </label>
       <label><h2>Title</h2>
         <input type="text" name="title" placeholder="Article Title" value="{{title}}" />
       </label>
       <label><h2>Body:</h2>
+  <p>Tip: You can write your entries using <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown!</a></p>
         <textarea name="content" placeholder="The content of your article goes here! Markdown formatting supported.">{{content}}</textarea>
       </label>
       <label><h2>Categories</h2>
