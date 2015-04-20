@@ -320,12 +320,15 @@ app.get('/authors/:id', function(req, res) {
           articles: articles
         }
       } else {
-        var toRender = {
-          author: articles[0].author,
-          email: articles[0].email,
-          articleCount: 0,
-          articles: "No articles yet!"
-        }
+        db.all("SELECT * FROM authors WHERE id=" + authorId, {}, function(err, author) {
+
+          var toRender = {
+            author: articles[0].author,
+            email: articles[0].email,
+            articleCount: 0,
+            articles: "No articles yet!"
+          }
+        });
       }
       var html = htmlHeader + Mustache.render(authorTemplate, toRender) + htmlFooter;
       res.send(html)
