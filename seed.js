@@ -3,9 +3,9 @@ var sqlite3 = require('sqlite3')
 var db = new sqlite3.Database('./wikidata.db', function(err, data) {
   console.log("DB linked!!");
 })
-db.run("INSERT INTO authors (author, email) VALUES ('Anna', 'anna@annarankin.com');")
-db.run("INSERT INTO authors (author, email) VALUES ('Banana', 'anna@annarankin.com');")
-db.run("INSERT INTO authors (author, email) VALUES ('Fofanna', 'anna@annarankin.com');")
+db.run("INSERT INTO authors (author, email) VALUES ('Anna', 'EMAIL@ADDRESS.COM');")
+db.run("INSERT INTO authors (author, email) VALUES ('Banana', 'EMAIL@ADDRESS.COM');")
+db.run("INSERT INTO authors (author, email) VALUES ('Fofanna', 'EMAIL@ADDRESS.COM');")
 
 db.run("INSERT INTO articles (author_id, title, timestamp, content) VALUES (1, 'THINGS', '2014-05-09', 'LDGLFLJDHFDJLSFGDLSFGLSJDFGLDKFGLDSFGLDSFGLISUDFGLSIDFGLIDKSJGFLKJDSBFLKSDJFSDGKG');")
 db.run("INSERT INTO articles (author_id, title, timestamp, content) VALUES (2, 'STUFF', '2014-05-09', 'LDGLFLJDHFDJLSFGDLSFGLSJDFGLDKFGLDSFGLDSFGLISUDFGLSIDFGLIDKSJGFLKJDSBFLKSDJFSDGKG');")
