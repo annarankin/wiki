@@ -12,6 +12,7 @@ body {
   background: url('http://i.imgur.com/pe04GUw.jpg');
   background-size: cover;
   background-color: #000000;
+  word-wrap: break-word;
 }
 h1 {
   font-family: 'Indie Flower', sans-serif;  

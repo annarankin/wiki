@@ -274,7 +274,9 @@ app.put('/articles/:id', function(req, res) {
   res.redirect('/articles/' + articleID);
 
   //send email to author
-
+  if (newEditor.length < 1){
+    newEditor = "anonymous";
+  }
   var emailContent = '<h1 style="color:#ee4433;">Your article has been updated!</h1><h2>Edited by ' + newEditor + " on " + timestamp + ":</h2><h3>" + newTitle + "</h3><p>" + marked(newContent) + "</p>"
 
   db.all("SELECT email FROM authors LEFT JOIN articles on articles.id=" + articleID + " WHERE authors.id = articles.author_id", {}, function(err, authorEmail) {
@@ -309,32 +311,31 @@ app.get('/authors/:id', function(req, res) {
   var authorId = req.params.id;
   fs.readFile('./views/authorpage.html', 'utf8', function(err, authorTemplate) {
     db.all("SELECT *, SUBSTR(content, 1, 200) AS excerpt, articles.id AS article_id FROM articles JOIN authors ON articles.author_id=authors.id WHERE author_id='" + authorId + "';", {}, function(err, articles) {
-      if (articles[0] !== undefined) {
-
-        formatEntries(articles);
-
-        var toRender = {
-          author: articles[0].author,
-          email: articles[0].email,
-          articleCount: articles.length,
-          articles: articles
-        }
-      } else {
+      console.log("THIS IS A LOG: " + articles)
+      if (articles[0] === undefined) {
         db.all("SELECT * FROM authors WHERE id=" + authorId, {}, function(err, author) {
-
           var toRender = {
             author: author[0].author,
             email: author[0].email,
             articleCount: 0,
             articles: "No articles yet!"
           }
+          var html = htmlHeader + Mustache.render(authorTemplate, toRender) + htmlFooter;
+          res.send(html)
         });
+      } else {
+        formatEntries(articles);
+        var toRender = {
+          author: articles[0].author,
+          email: articles[0].email,
+          articleCount: articles.length,
+          articles: articles
+        }
+        var html = htmlHeader + Mustache.render(authorTemplate, toRender) + htmlFooter;
+        res.send(html)
       }
-      var html = htmlHeader + Mustache.render(authorTemplate, toRender) + htmlFooter;
-      res.send(html)
     });
-  });
-
+  });//end readfile
 }); //end authors get callback
 
 //see all authors
