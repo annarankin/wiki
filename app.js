@@ -323,8 +323,8 @@ app.get('/authors/:id', function(req, res) {
         db.all("SELECT * FROM authors WHERE id=" + authorId, {}, function(err, author) {
 
           var toRender = {
-            author: articles[0].author,
-            email: articles[0].email,
+            author: author[0].author,
+            email: author[0].email,
             articleCount: 0,
             articles: "No articles yet!"
           }
