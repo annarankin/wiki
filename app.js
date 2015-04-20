@@ -302,7 +302,7 @@ app.delete('/articles/:id', function(req, res) {
 }); //end delete callback
 
 app.get('/authors', function(req, res){
-  fs.readFile('/authors.html', 'utf8', function(err, authorTemplate){
+  fs.readFile('./authors.html', 'utf8', function(err, authorTemplate){
     db.all('SELECT * FROM authors;', {}, function(err, authors){
       console.log(authors);
       var html = htmlHeader + Mustache.render(authorTemplate, {authors: authors}) + htmlFooter;
