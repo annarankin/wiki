@@ -1,3 +1,4 @@
+var config = require('./information.js')
 var sqlite3 = require('sqlite3')
 var express = require('express')
 var morgan = require('morgan')
@@ -8,6 +9,8 @@ var bodyParser = require('body-parser')
 var moment = require('moment')
 var he = require('he')
 // var functions = require('./functions.js')
+var sendgrid  = require('sendgrid')(config.sendgridUsername, config.sendgridKey);
+// console.log(config.+"\n"+)
 function formatEntries(entryArray) {
   var toReturn = entryArray.forEach(function(e) {
     e.title = he.decode(e.title)
@@ -300,15 +303,6 @@ app.delete('/articles/:id', function(req, res) {
 
 }); //end delete callback
 
-app.get('/authors', function(req, res){
-  fs.readFile('./authors.html', 'utf8', function(err, authorTemplate){
-    db.all('SELECT * FROM authors;', {}, function(err, authors){
-      console.log(authors);
-      var html = htmlHeader + Mustache.render(authorTemplate, {authors: authors}) + htmlFooter;
-      res.send(html)
-    })
-  })
-})
 
 //see all by author
 app.get('/authors/:id', function(req, res) {
@@ -330,6 +324,16 @@ app.get('/authors/:id', function(req, res) {
   });
 
 }); //end authors get callback
+app.get('/authors', function(req, res){
+  fs.readFile('./views/authors.html', 'utf8', function(err, authorTemplate){
+    console.log(authorTemplate)
+    db.all('SELECT * FROM authors;', {}, function(err, authors){
+      console.log(authors);
+      var html = htmlHeader + Mustache.render(authorTemplate, {authors: authors}) + htmlFooter;
+      res.send(html)
+    })
+  })
+})
 
 //see categories
 app.get('/categories', function(req, res) {
