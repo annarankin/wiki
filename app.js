@@ -8,22 +8,9 @@ var methodOverride = require('method-override')
 var bodyParser = require('body-parser')
 var moment = require('moment')
 var he = require('he')
-  // var functions = require('./functions.js')
-var sendgrid = require('sendgrid')(config.sendgridUsername, config.sendgridKey);
-// console.log(config.+"\n"+)
-function formatEntries(entryArray) {
-  var toReturn = entryArray.forEach(function(e) {
-    e.title = he.decode(e.title)
-    if (marked(he.decode(e.excerpt)).indexOf('<img src=') > 0) {
-      e.excerpt = "<p><strong>Image post!</strong></p>" + marked(he.decode(e.excerpt + "..."));
-    } else {
-      e.excerpt = marked(he.decode(e.excerpt + "..."));
-    }
-  });
-  return toReturn
-}
-
 var marked = require('marked')
+var sendgrid = require('sendgrid')(config.sendgridUsername, config.sendgridKey);
+// var functions = require('./functions.js')
 marked.setOptions({
   renderer: new marked.Renderer(),
   gfm: true,
@@ -34,8 +21,6 @@ marked.setOptions({
   smartLists: true,
   smartypants: false
 });
-
-//set up db variable, link to file
 var db = new sqlite3.Database('./wikidata.db', function(err, data) {
   console.log("DB linked!!");
 });
@@ -51,6 +36,17 @@ app.use(express.static(__dirname, 'views'))
 var htmlHeader = fs.readFileSync('./views/header.html', 'utf8');
 var htmlFooter = fs.readFileSync('./views/footer.html', 'utf8');
 
+function formatEntries(entryArray) {
+  var toReturn = entryArray.forEach(function(e) {
+    e.title = he.decode(e.title)
+    if (marked(he.decode(e.excerpt)).indexOf('<img src=') > 0) {
+      e.excerpt = "<p><strong>Image post!</strong></p>" + marked(he.decode(e.excerpt + "..."));
+    } else {
+      e.excerpt = marked(he.decode(e.excerpt + "..."));
+    }
+  });
+  return toReturn
+}
 
 // get "/" - read db, render a template with results of "articles" table, send index page as HTML
 app.get('/', function(req, res) {
@@ -107,7 +103,8 @@ app.post('/articles/new', function(req, res) {
 app.get('/articles/:id', function(req, res) {
   var articleID = req.params.id;
   fs.readFile('./views/article.html', 'utf8', function(err, articleTemplate) {
-    db.all("SELECT title, author, timestamp, content, category, articles.id AS article_id, categories.id AS category_id FROM articles JOIN tags ON articles.id = article_id JOIN categories ON categories.id = category_id JOIN authors ON authors.id = author_id WHERE articles.id = " + articleID + ";", {}, function(err, articleData) {
+    db.all("SELECT title, author, authors.id AS author_id, timestamp, content, category, articles.id AS article_id, categories.id AS category_id FROM articles JOIN tags ON articles.id = article_id JOIN categories ON categories.id = category_id JOIN authors ON authors.id = author_id WHERE articles.id = " + articleID + ";", {}, function(err, articleData) {
+      console.log(articleData[0])
       if (articleData[0] !== undefined) {
         var categoryArray = []
         articleData.forEach(function(e) {
