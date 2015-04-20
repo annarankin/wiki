@@ -304,6 +304,7 @@ app.delete('/articles/:id', function(req, res) {
 app.get('/authors', function(req, res){
   fs.readFile('/authors.html', 'utf8', function(err, authorTemplate){
     db.all('SELECT * FROM authors;', {}, function(err, authors){
+      console.log(authors);
       var html = htmlHeader + Mustache.render(authorTemplate, {authors: authors}) + htmlFooter;
       res.send(html)
     })
