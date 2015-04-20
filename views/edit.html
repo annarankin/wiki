@@ -1,7 +1,10 @@
-  <div class="article_list">
+  <div class="article-list">
+    <form action="/articles/{{article_id}}/?_method=DELETE" method="POST">
+        <button type="submit">Delete this Article</button>
+    </form>
     <form action="/articles/{{article_id}}/?_method=PUT" method="POST">
       <label><h2>Your name:</h2>
-        <input type="text" name="editor" placeholder="Your Name" />
+        <input type="text" name="author" placeholder="Your Name" />
       </label>
       <label><h2>Title</h2>
         <input type="text" name="title" placeholder="Article Title" value="{{title}}" />
@@ -16,8 +19,15 @@
       </label>
         <button type="submit">Submit</button>
     </form>
-    <form action="/articles/{{article_id}}/?_method=DELETE" method="POST">
-    <button type="submit">DELETE!</button>
-    </form>
-      <a href="/">Go home</a>
+    <div class="revision-history">
+      <h1>Revision History</h1>
+      {{#revisions}}
+        <form action="/articles/{{article_id}}/edit/{{id}}/?_method=PUT" method="POST">
+          <p>
+            <button type="submit">Restore this version</button>
+           {{timestamp}}: Modified by {{author}}
+          </p>
+        </form>
+      {{/revisions}}
+    </div>
   </div>

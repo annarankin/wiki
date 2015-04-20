@@ -1,9 +1,9 @@
-  <div class="article_list">
-    <span class="announcement">Most recent articles:</span>
+  <h1>Most recent articles:</h1>
+  <div class="article-list">
     {{#articles}}
     <h1>{{title}}</h1>
     <h2>By <a href="/authors/{{author_id}}">{{author}}</a> at {{timestamp}}</h2>
-    <span class="article_content"><p>{{{excerpt}}}</p></span>
+    <span class="article-content"><p>{{{excerpt}}}</p></span>
     <p><a href="/articles/{{article_id}}">View full</a></p>
     {{/articles}}
   </div>

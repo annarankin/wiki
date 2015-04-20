@@ -1,11 +1,11 @@
   <h1>{{author}}</h1>
-  <p><a href="mailto://{{email}}">Send {{author}} an email!</a></p>
+  <p><a href="mailto:{{email}}">Send {{author}} an email!</a></p>
   <h2>Author of {{articleCount}} articles:</h2>
-  <div class="article_list">
+  <div class="article-list">
     {{#articles}}
     <h1>{{title}}</h1>
     <h2>Last edited: {{timestamp}}</h2>
-    <span class="article_content"><p>{{{excerpt}}}</p></span>
+    <span class="article-content"><p>{{{excerpt}}}</p></span>
     <p><a href="/articles/{{article_id}}">Link to Article Page</a></p>
     {{/articles}}
   </div>

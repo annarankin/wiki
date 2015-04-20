@@ -1,5 +1,3 @@
-//set up requirements - sqlite3, mustache, morgan, marked(for later), moment(for timestamps, can do hour/minute and stuff), express ...
-
 var sqlite3 = require('sqlite3')
 var express = require('express')
 var morgan = require('morgan')
@@ -9,7 +7,18 @@ var methodOverride = require('method-override')
 var bodyParser = require('body-parser')
 var moment = require('moment')
 var he = require('he')
-
+// var functions = require('./functions.js')
+function formatEntries(entryArray) {
+  var toReturn = entryArray.forEach(function(e) {
+    e.title = he.decode(e.title)
+    if (marked(he.decode(e.excerpt)).indexOf('<img src=') > 0) {
+      e.excerpt = "<p><strong>Image post!</strong></p>" + marked(he.decode(e.excerpt + "..."));
+    } else {
+      e.excerpt = marked(he.decode(e.excerpt + "..."));
+    }
+  });
+  return toReturn
+}
 var sendgrid = require('sendgrid')('AnnaRankin', '0i8afork!');
 
 var marked = require('marked')
@@ -46,15 +55,7 @@ app.get('/', function(req, res) {
   fs.readFile('./views/index.html', 'utf8', function(err, indexTemplate) {
     //query db for author and article content for 5 most recent entries
     db.all("SELECT *, SUBSTR(content, 1, 200) AS excerpt, articles.id AS article_id FROM articles JOIN authors ON authors.id=articles.author_id ORDER BY timestamp DESC LIMIT 5;", {}, function(err, recentEntries) {
-
-      recentEntries.forEach(function(e) {
-        e.title = he.decode(e.title)
-        if (marked(he.decode(e.excerpt)).indexOf('<img src=') > 0) {
-          e.excerpt = "<p><strong>Image post!</strong></p>" + marked(he.decode(e.excerpt + "..."));
-        } else {
-          e.excerpt = marked(he.decode(e.excerpt + "..."));
-        }
-      });
+      formatEntries(recentEntries);
       var html = htmlHeader + Mustache.render(indexTemplate, {
         articles: recentEntries
       }) + htmlFooter;
@@ -136,24 +137,26 @@ app.get('/articles/:id', function(req, res) {
 
 //add new article to db - submitting to db & adding relations
 app.post('/articles', function(req, res) {
-  //set up all the variables, clean up
 
   var timestamp = moment().format('YYYY-MM-DD HH:mm:ss a');;
   var authorId = req.body.author;
   var newTitle = he.encode(req.body.title);
   var newContent = he.encode(req.body.content);
   var newCategories = req.body.categories.split(",");
+
   var newCatTrimmed = []
   newCategories.forEach(function(e) {
-    var trimmed = e.trim();
+    var trimmed = e.trim().toLowerCase().replace(/\W/g, "_").replace(/ /g, "_");
     newCatTrimmed.push(trimmed);
-  }); //end forEach funkin
+  });
 
   if (newTitle.length > 1 && newContent.length > 1) {
-    //insert article info into article table
     db.run("INSERT INTO articles (author_id, title, timestamp, content) SELECT " + authorId + ",'" + newTitle + "','" + timestamp + "','" + newContent + "' WHERE NOT EXISTS (SELECT 1 FROM articles WHERE author_id =" + authorId + " AND title='" + newTitle + "' AND timestamp='" + timestamp + "' AND content='" + newContent + "');")
+    db.all("SELECT id FROM articles WHERE title='" + newTitle + "' AND content='" + newContent + "' AND timestamp='" + timestamp + "';", {}, function(err, article_id) {
+      var articleID = article_id[0].id;
+      db.run("INSERT INTO changelog (article_id, author, title, timestamp, content) VALUES (" + articleID + ", 'original author','" + newTitle + "','" + timestamp + "','" + newContent + "');")
+    });
 
-    //insert categories into catgories table
     newCatTrimmed.forEach(function(e) {
       if (e.replace(/ /g, "") !== "") {
         db.run("INSERT INTO categories (category) SELECT '" + e + "' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE category='" + e + "');")
@@ -201,30 +204,53 @@ app.get('/articles/:id/edit', function(req, res) {
       });
       articleData[0].catString = categoryArray.join(", ")
 
-      fs.readFile('./views/edit.html', 'utf8', function(err, editTemplate) {
-        var html = htmlHeader + Mustache.render(editTemplate, articleData[0]) + htmlFooter;
-        res.send(html)
-      }); //end readfile 
+      db.all("SELECT * FROM changelog WHERE article_id=" + articleID, {}, function(err, revisions) {
+        articleData[0].revisions = revisions;
+        articleData[0].content = he.decode(articleData[0].content)
+        articleData[0].title = he.decode(articleData[0].title)
+        fs.readFile('./views/edit.html', 'utf8', function(err, editTemplate) {
+          var html = htmlHeader + Mustache.render(editTemplate, articleData[0]) + htmlFooter;
+          res.send(html)
+        }); //end readfile 
+      });
     }
   }); //end db.all funkyshun
 }); //end app.get function
 
-//submit edited article formdata
+//restore revision
+app.put('/articles/:article_id/edit/:id', function(req, res) {
+  var articleID = req.params.article_id;
+  var revisionID = req.params.id;
+  db.all("SELECT * FROM changelog WHERE id =" + revisionID + ";", {}, function(err, article) {
+    newContent = article[0].content;
+    newTitle = article[0].title;
+    timestamp = moment().format('YYYY-MM-DD HH:mm:ss a');
+    //add article DB info
+    db.run("UPDATE articles SET title ='" + newTitle + "', content='" + newContent + "' WHERE id='" + articleID + "';");
+    db.run("INSERT INTO changelog (article_id, author, title, timestamp, content) VALUES (" + articleID + ", 'restoration to prior version','" + newTitle + "','" + timestamp + "','" + newContent + "');")
+    res.redirect('/articles/' + articleID);
+  });
+});
 
+
+//submit edited article formdata
 app.put('/articles/:id', function(req, res) {
   //set up all the variables, clean up
   var articleID = req.params.id;
   var timestamp = moment().format('YYYY-MM-DD HH:mm:ss a');
-  var newTitle = req.body.title;
-  var newContent = req.body.content;
-  var newEditor = req.body.editor;
+  var newTitle = he.encode(req.body.title);
+  var newContent = he.encode(req.body.content);
+  var newEditor = req.body.author;
+  if (newEditor === undefined) {
+    newEditor = "anonymous editor";
+  };
   var newCategories = req.body.categories.split(",");
   console.log("This is a length " + newCategories.length)
   if (newCategories.length > 0) {
 
     var newCatTrimmed = []
     newCategories.forEach(function(e) {
-      var trimmed = e.trim();
+      var trimmed = e.trim().toLowerCase().replace(/\W/g, "").replace(/ /g, "_");
       newCatTrimmed.push(trimmed);
     });
 
@@ -241,24 +267,27 @@ app.put('/articles/:id', function(req, res) {
   } //close conditional that checks for new categories
 
   //add article DB info
-  db.run("UPDATE articles SET title ='" + newTitle + "', timestamp='" + timestamp + "', content='" + newContent + "' WHERE id='" + articleID + "';");
+  db.run("UPDATE articles SET title ='" + newTitle + "', content='" + newContent + "' WHERE id='" + articleID + "';");
+  db.run("INSERT INTO changelog (article_id, author, title, timestamp, content) VALUES (" + articleID + ", '" + newEditor + "','" + newTitle + "','" + timestamp + "','" + newContent + "');")
   res.redirect('/articles/' + articleID);
 
   //send email to author
 
-  var emailContent = "<h1>Your article has been updated!</h1><h2>Edited by " + newEditor + " on " + timestamp + ":</h2><h3>" + newTitle + "</h3><p>" + newContent + "</p>"
+  var emailContent = '<h1 style="color:#ee4433;">Your article has been updated!</h1><h2>Edited by ' + newEditor + " on " + timestamp + ":</h2><h3>" + newTitle + "</h3><p>" + marked(newContent) + "</p>"
 
-  sendgrid.send({
-    to: 'anna@annarankin.com',
-    from: 'anna@annarankin.com',
-    subject: 'Your article has been updated!',
-    text: emailContent
-  }, function(err, json) {
-    if (err) {
-      return console.error(err);
-    }
-    console.log(json);
-  });
+  db.all("SELECT email FROM authors LEFT JOIN articles on articles.id=" + articleID + " WHERE authors.id = articles.author_id", {}, function(err, authorEmail) {
+    sendgrid.send({
+      to: authorEmail[0].email,
+      from: 'anna@annarankin.com',
+      subject: 'Your article has been updated!',
+      html: emailContent
+    }, function(err, json) {
+      if (err) {
+        return console.error(err);
+      }
+      console.log(json);
+    });
+  })
 
 });
 
@@ -278,14 +307,7 @@ app.get('/authors/:id', function(req, res) {
   fs.readFile('./views/authorpage.html', 'utf8', function(err, authorTemplate) {
     db.all("SELECT *, SUBSTR(content, 1, 200) AS excerpt, articles.id AS article_id FROM articles JOIN authors ON articles.author_id=authors.id WHERE author_id='" + authorId + "';", {}, function(err, articles) {
 
-      articles.forEach(function(e) {
-        e.title = he.decode(e.title)
-        if (marked(he.decode(e.excerpt)).indexOf('<img src=') > 0) {
-          e.excerpt = "<p><strong>Image post!</strong></p>" + marked(he.decode(e.excerpt + "..."));
-        } else {
-          e.excerpt = marked(he.decode(e.excerpt + "..."));
-        }
-      });
+      formatEntries(articles);
 
       var toRender = {
         author: articles[0].author,

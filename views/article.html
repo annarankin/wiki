@@ -1,13 +1,13 @@
-  <div class="article_list">
+  <a href="/articles/{{article_id}}/edit">Edit</a>
   <h1>{{title}}</h1>
-  <h2>By <a href="/authors/{{author_id}}">{{author}}</a></h2>
-  <h3>Last updated at {{timestamp}}</h3>
-    <a href="/articles/{{article_id}}/edit">Edit</a>
-  {{{content}}}
-  <h3>Cattergorys</h3>
-  <p>
-  {{#categories}}
-  <a href="/categories/{{category_id}}">{{category}}</a>, 
-  {{/categories}}
+  <div class="article-list">
+    <h2>By <a href="/authors/{{author_id}}">{{author}}</a></h2>
+    <h3>Created on {{timestamp}}</h3>
+      {{{content}}}
+    <h3>Cattergorys</h3>
+    <p>
+    {{#categories}}
+      <a href="/categories/{{category_id}}">{{category}}</a>, 
+    {{/categories}}
   </p>
   </div>

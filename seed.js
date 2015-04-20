@@ -15,7 +15,7 @@ db.run("INSERT INTO authors (author, email) VALUES ('Woof','annanotabanana@gmail
 
 db.run("INSERT INTO articles (author_id, title, timestamp, content) VALUES (1, 'How to Paint By Numbers', '2015-04-16 13:47', 'Bacon ipsum dolor sit amet tenderloin salami pig, fatback pastrami ham hock shoulder bacon t-bone pork meatball. Pancetta ham turkey shankle turducken jerky. Jowl spare ribs short ribs andouille tongue shoulder. Rump shoulder cow turducken, salami filet mignon ham sausage pancetta pork prosciutto brisket short ribs boudin. Shoulder short ribs andouille swine venison ham hock.');");
 db.run("INSERT INTO articles (author_id, title, timestamp, content) VALUES (1, 'Clicks-And-Mortar Solutions', '2015-04-16 14:00', 'Collaboratively administrate empowered markets via plug-and-play networks. Dynamically procrastinate B2C users after installed base benefits. Dramatically visualize customer directed convergence without revolutionary ROI. Efficiently unleash cross-media information without cross-media value. Quickly maximize timely deliverables for real-time schemas. Dramatically maintain clicks-and-mortar solutions without functional solutions.');");
-db.run("INSERT INTO articles (author_id, title, timestamp, content) VALUES (2, 'Soda', '2015-04-16 14:00', '![image](http://ak-hdl.buzzfed.com/static/2013-10/enhanced/webdr05/30/11/enhanced-buzz-10540-1383145412-16.jpg)');"); 
+db.run("INSERT INTO articles (author_id, title, timestamp, content) VALUES (2, 'Soda', '2015-04-16 14:00', '![image](http://ak-hdl.buzzfed.com/static/2013-10/enhanced/webdr05/30/11/enhanced-buzz-10540-1383145412-16.jpg)');");
 
 
 //categories : id INTEGER PRIMARY KEY, category VARCHAR(255)
@@ -30,6 +30,16 @@ db.run("INSERT INTO tags (article_id, category_id) VALUES (1,1)")
 db.run("INSERT INTO tags (article_id, category_id) VALUES (1,3)")
 db.run("INSERT INTO tags (article_id, category_id) VALUES (2,2)")
 db.run("INSERT INTO tags (article_id, category_id) VALUES (2,3)")
+db.run("INSERT INTO tags (article_id, category_id) VALUES (3,3)")
+
+db.run("INSERT INTO changelog (article_id, author, title, timestamp, content) VALUES (1,  'original author', 'How to Paint By Numbers', '2015-04-16 13:47', 'Bacon ipsum dolor sit amet tenderloin salami pig, fatback pastrami ham hock shoulder bacon t-bone pork meatball. Pancetta ham turkey shankle turducken jerky. Jowl spare ribs short ribs andouille tongue shoulder. Rump shoulder cow turducken, salami filet mignon ham sausage pancetta pork prosciutto brisket short ribs boudin. Shoulder short ribs andouille swine venison ham hock.')")
+db.run("INSERT INTO changelog (article_id, author, title, timestamp, content) VALUES (2,  'original author', 'Clicks-And-Mortar Solutions', '2015-04-16 14:00', 'Collaboratively administrate empowered markets via plug-and-play networks. Dynamically procrastinate B2C users after installed base benefits. Dramatically visualize customer directed convergence without revolutionary ROI. Efficiently unleash cross-media information without cross-media value. Quickly maximize timely deliverables for real-time schemas. Dramatically maintain clicks-and-mortar solutions without functional solutions.')")
+db.run("INSERT INTO changelog (article_id, author, title, timestamp, content) VALUES (3, 'original author', 'Soda', '2015-04-16 14:00', '![image](http://ak-hdl.buzzfed.com/static/2013-10/enhanced/webdr05/30/11/enhanced-buzz-10540-1383145412-16.jpg)')")
+
+
+
+
+
 
 
 
