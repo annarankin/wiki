@@ -19,7 +19,6 @@ function formatEntries(entryArray) {
   });
   return toReturn
 }
-var sendgrid = require('sendgrid')('AnnaRankin', '0i8afork!');
 
 var marked = require('marked')
 marked.setOptions({
