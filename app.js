@@ -8,8 +8,8 @@ var methodOverride = require('method-override')
 var bodyParser = require('body-parser')
 var moment = require('moment')
 var he = require('he')
-// var functions = require('./functions.js')
-var sendgrid  = require('sendgrid')(config.sendgridUsername, config.sendgridKey);
+  // var functions = require('./functions.js')
+var sendgrid = require('sendgrid')(config.sendgridUsername, config.sendgridKey);
 // console.log(config.+"\n"+)
 function formatEntries(entryArray) {
   var toReturn = entryArray.forEach(function(e) {
@@ -102,7 +102,7 @@ app.post('/articles/new', function(req, res) {
 
 
 
-// get "/article/id" - query db for specific article by ID, render into HTML template and send 
+// get "/article/id" - query db for specific article by ID, render into HTML template and send
 
 app.get('/articles/:id', function(req, res) {
   var articleID = req.params.id;
@@ -213,7 +213,7 @@ app.get('/articles/:id/edit', function(req, res) {
         fs.readFile('./views/edit.html', 'utf8', function(err, editTemplate) {
           var html = htmlHeader + Mustache.render(editTemplate, articleData[0]) + htmlFooter;
           res.send(html)
-        }); //end readfile 
+        }); //end readfile
       });
     }
   }); //end db.all funkyshun
@@ -309,14 +309,23 @@ app.get('/authors/:id', function(req, res) {
   var authorId = req.params.id;
   fs.readFile('./views/authorpage.html', 'utf8', function(err, authorTemplate) {
     db.all("SELECT *, SUBSTR(content, 1, 200) AS excerpt, articles.id AS article_id FROM articles JOIN authors ON articles.author_id=authors.id WHERE author_id='" + authorId + "';", {}, function(err, articles) {
+      if (articles[0] !== undefined) {
 
-      formatEntries(articles);
+        formatEntries(articles);
 
-      var toRender = {
-        author: articles[0].author,
-        email: articles[0].email,
-        articleCount: articles.length,
-        articles: articles
+        var toRender = {
+          author: articles[0].author,
+          email: articles[0].email,
+          articleCount: articles.length,
+          articles: articles
+        }
+      } else {
+        var toRender = {
+          author: articles[0].author,
+          email: articles[0].email,
+          articleCount: 0,
+          articles: "No articles yet!"
+        }
       }
       var html = htmlHeader + Mustache.render(authorTemplate, toRender) + htmlFooter;
       res.send(html)
@@ -324,12 +333,16 @@ app.get('/authors/:id', function(req, res) {
   });
 
 }); //end authors get callback
-app.get('/authors', function(req, res){
-  fs.readFile('./views/authors.html', 'utf8', function(err, authorTemplate){
+
+//see all authors
+app.get('/authors', function(req, res) {
+  fs.readFile('./views/authors.html', 'utf8', function(err, authorTemplate) {
     console.log(authorTemplate)
-    db.all('SELECT * FROM authors;', {}, function(err, authors){
+    db.all('SELECT * FROM authors;', {}, function(err, authors) {
       console.log(authors);
-      var html = htmlHeader + Mustache.render(authorTemplate, {authors: authors}) + htmlFooter;
+      var html = htmlHeader + Mustache.render(authorTemplate, {
+        authors: authors
+      }) + htmlFooter;
       res.send(html)
     })
   })
