@@ -1,0 +1,9 @@
+  <h1>All articles (most recent first)</h1>
+  <div class="article-list">
+    {{#articles}}
+    <h1>{{title}}</h1>
+    <h2>By <a href="/authors/{{author_id}}">{{author}}</a> at {{timestamp}}</h2>
+    <span class="article-content">{{{excerpt}}}</span>
+    <p><a href="/articles/{{article_id}}">View full</a></p>
+    {{/articles}}
+  </div>

@@ -64,8 +64,17 @@ app.get('/', function(req, res) {
 
 //view articles
 app.get('/articles', function(req, res) {
-  res.redirect('/')
-});
+  fs.readFile('./views/articlelist.html', 'utf8', function(err, indexTemplate) {
+    //query db for author and article content for 5 most recent entries
+    db.all("SELECT *, SUBSTR(content, 1, 200) AS excerpt, articles.id AS article_id FROM articles JOIN authors ON authors.id=articles.author_id ORDER BY timestamp DESC;", {}, function(err, recentEntries) {
+      formatEntries(recentEntries);
+      var html = htmlHeader + Mustache.render(indexTemplate, {
+        articles: recentEntries
+      }) + htmlFooter;
+      res.send(html);
+    }); //end db.all function
+  }); //end readFile function
+}); //end app.get function});
 
 //add new article FORM
 app.get('/articles/new', function(req, res) {
@@ -271,7 +280,7 @@ app.put('/articles/:id', function(req, res) {
   res.redirect('/articles/' + articleID);
 
   //send email to author
-  if (newEditor.length < 1){
+  if (newEditor.length < 1) {
     newEditor = "anonymous";
   }
   var emailContent = '<h1 style="color:#ee4433;">Your article has been updated!</h1><h2>Edited by ' + newEditor + " on " + timestamp + ":</h2><h3>" + newTitle + "</h3><p>" + marked(newContent) + "</p>"
@@ -332,7 +341,7 @@ app.get('/authors/:id', function(req, res) {
         res.send(html)
       }
     });
-  });//end readfile
+  }); //end readfile
 }); //end authors get callback
 
 //see all authors
