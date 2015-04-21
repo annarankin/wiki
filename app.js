@@ -40,7 +40,7 @@ function formatEntries(entryArray) {
   var toReturn = entryArray.forEach(function(e) {
     e.title = he.decode(e.title)
     if (marked(he.decode(e.excerpt)).indexOf('<img src=') > 0) {
-      e.excerpt = "<p><strong>Image post!</strong></p>" + marked(he.decode(e.excerpt + "..."));
+      e.excerpt = '<p><span style="color:red"><strong>Image post!</strong></span></p>' + marked(he.decode(e.excerpt + "..."));
     } else {
       e.excerpt = marked(he.decode(e.excerpt + "..."));
     }
