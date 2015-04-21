@@ -57,11 +57,42 @@ Mustache is a tool for rendering key-value pairs into a template designed by {{y
 ###sendgrid (v 1.6.1)
 The sendgrid module is a tool provided by [SendGrid](https://sendgrid.com/), a transactional email service. The module allows the application to send an email programmatically - for example, whenever a change to an article the user has created changes.
 
+##Wireframe
+
+![Alt text](wireframe.png)
+
+##ERD
+
+![Alt text](erd.jpg)
+
+####Additional table added:
+
+|id|article_id|author|title|timestamp|content|
+|-|
+|INTEGER PRIMARY KEY|INTEGER REFERENCES articles(id)|VARCHAR(255)|VARCHAR(255)|DATE|TEXT|
+
+This table stores a record of all changes to all articles and saves a backup.
+
 ##Installation & Setup
 
 If you'd like to set this application up and run it on localhost, follow the instructions below:
 
-1.
+1. Make a directory on your computer **outside of any existing git repository**. Name it whatever you'd like!
+
+2. Navigate inside that directory and run `git init`.
+
+3. Clone this repository to your machine by running `git clone https://github.com/annarankin/wiki.git`.
+
+4. You'll need a SendGrid username and password - replace the variables in `var sendgrid = require('sendgrid')('YOUR USERNAME', 'YOUR API KEY');` in **app.js** with your own credentials.
+
+5. Run `npm install .` to install all node modules.
+
+6. Run `node schema.js` to set up your database.
+
+7. Run `node seed.js` to seed your database.
+
+8. Run `node app.js` - **you're good to go!**
+
 
 ##Feature backlog/to-do list:
   - Ability to delete tags from an article on an individual basis.
